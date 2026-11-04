@@ -1,4 +1,5 @@
 import sqlite3
+from dataclasses import asdict
 from pathlib import Path
 
 DB_PATH = Path("data") / "properties.db"
@@ -26,6 +27,8 @@ CREATE TABLE IF NOT EXISTS properties (
     latitude REAL,
     longitude REAL,
     status TEXT,
+    property_type TEXT,
+    sale_type TEXT,
     UNIQUE (address, zip_code)
 );
 """
@@ -38,7 +41,33 @@ def init_db():
     conn.close()
 
 
+INSERT_PROPERTY = """
+INSERT OR IGNORE INTO properties (
+    address, city, state, zip_code, price, source, date_seen,
+    sqft, beds, year_built, lot_size, baths, latitude, longitude,
+    status, property_type, sale_type
+) VALUES (
+    :address, :city, :state, :zip_code, :price, :source, :date_seen,
+    :sqft, :beds, :year_built, :lot_size, :baths, :latitude, :longitude,
+    :status, :property_type, :sale_type
+);
+"""
+
+
+def save_properties(properties):
+    conn = get_connection()
+    added = 0
+    for prop in properties:
+        values = asdict(prop)
+        values["date_seen"] = prop.date_seen.isoformat()
+        cursor = conn.execute(INSERT_PROPERTY, values)
+        added += cursor.rowcount
+    conn.commit()
+    conn.close()
+    return added
+
+
 if __name__ == "__main__":
     init_db()
     print(f"Database ready at {DB_PATH}")
-
+    

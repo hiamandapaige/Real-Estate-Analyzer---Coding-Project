@@ -22,4 +22,7 @@ class Property:
     latitude: float | None = None
     longitude: float | None = None
     status: str | None = None
+
+    property_type: str | None = None
+    sale_type: str | None = None
     
