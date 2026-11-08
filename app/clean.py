@@ -1,3 +1,24 @@
+# ------------------------------------------------------------
+# clean.py: cleaning and quality rules (Project 3)
+#
+# WHAT IT DOES
+#   normalize_address() turns any spelling of an address into
+#   one standard form, so the same place always matches.
+#   Quality rules (coming in Part B) flag impossible or
+#   unusable listings, with a reason.
+#
+# USED BY
+#   tests/test_clean.py checks every function here.
+#   import_redfin.py will use it (Part C). Later projects rely
+#   on the standardized address to match county records.
+#
+# IF YOU EDIT IT
+#   Run  python3 -m pytest  after every change.
+#   Changing how addresses are standardized changes how they
+#   match. Add a test for any new rule or abbreviation.
+# ------------------------------------------------------------
+
+
 import re
 
 # Different spellings of the same word, mapped to one short form.

@@ -1,3 +1,21 @@
+# ------------------------------------------------------------
+# test_clean.py: automatic checks for app/clean.py
+#
+# WHAT IT DOES
+#   Each test_ function feeds clean.py a known input and
+#   asserts the expected output.
+#   Run all tests:  python3 -m pytest
+#
+# IF A TEST FAILS
+#   Either the code broke, or the rule changed on purpose and
+#   the test needs updating. Decide which before "fixing" it.
+#
+# IF YOU EDIT IT
+#   Every new rule in clean.py gets at least one test here.
+#   Test function names must start with test_ or pytest skips them.
+# ------------------------------------------------------------
+
+
 from app.clean import normalize_address
 
 

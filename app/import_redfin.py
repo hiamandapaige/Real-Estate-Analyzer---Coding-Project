@@ -1,3 +1,24 @@
+# ------------------------------------------------------------
+# import_redfin.py: the Redfin importer (Extract, Transform, Load)
+#
+# WHAT IT DOES
+#   Reads every CSV in data/inbox, turns each row into a
+#   Property, saves new ones to the database, then moves the
+#   file to data/raw.
+#   Run it:  python3 -m app.import_redfin
+#
+# USED BY
+#   You, whenever you download new listings from Redfin.
+#   Depends on models.py (Property) and db.py (save_properties).
+#
+# IF YOU EDIT IT
+#   Column names like "ZIP OR POSTAL CODE" must match Redfin's
+#   header exactly. If Redfin renames a column, the matching
+#   line here breaks with a KeyError.
+#   Never hand-edit a CSV to make it fit. Fix quirks here.
+# ------------------------------------------------------------
+
+
 from datetime import date
 from pathlib import Path
 

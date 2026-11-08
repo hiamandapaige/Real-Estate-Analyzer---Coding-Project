@@ -1,3 +1,26 @@
+# ------------------------------------------------------------
+# db.py: the filing cabinet (SQLite database)
+#
+# WHAT IT DOES
+#   Knows where the database lives (data/properties.db),
+#   designs the properties table, and saves Properties into it.
+#   Run directly to create the table:  python3 -m app.db
+#
+# USED BY
+#   import_redfin.py calls save_properties().
+#   Every later project opens the database through get_connection().
+#
+# IF YOU EDIT IT
+#   Changing the table design does NOT change a table that
+#   already exists (IF NOT EXISTS skips it). To rebuild:
+#     1. Delete data/properties.db
+#     2. python3 -m app.db
+#     3. Move your CSVs from data/raw back to data/inbox
+#     4. python3 -m app.import_redfin
+#   Column names must match the fields in models.py.
+# ------------------------------------------------------------
+
+
 import sqlite3
 from dataclasses import asdict
 from pathlib import Path

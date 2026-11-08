@@ -1,3 +1,22 @@
+# ------------------------------------------------------------
+# models.py: the Property "form"
+#
+# WHAT IT DOES
+#   Defines Property: the fields every listing has (address,
+#   price, beds...) and the type of each field.
+#
+# USED BY
+#   import_redfin.py fills out one Property per CSV row.
+#   db.py saves Properties. Field names must match column names.
+#
+# IF YOU EDIT IT
+#   Adding, renaming, or removing a field also means updating:
+#     - db.py: the CREATE TABLE columns and INSERT placeholders
+#     - import_redfin.py: row_to_property()
+#   Then rebuild the database (see db.py). An existing table
+#   never changes on its own.
+# ------------------------------------------------------------
+
 from dataclasses import dataclass
 from datetime import date
 
