@@ -4,8 +4,8 @@
 # WHAT IT DOES
 #   normalize_address() turns any spelling of an address into
 #   one standard form, so the same place always matches.
-#   Quality rules (coming in Part B) flag impossible or
-#   unusable listings, with a reason.
+#   find_problems() runs every quality rule on one Property and
+#   returns a list of reasons it can't be trusted (empty = clean).
 #
 # USED BY
 #   tests/test_clean.py checks every function here.
@@ -14,12 +14,17 @@
 #
 # IF YOU EDIT IT
 #   Run  python3 -m pytest  after every change.
-#   Changing how addresses are standardized changes how they
-#   match. Add a test for any new rule or abbreviation.
+#   New rule? Write the function, add it to RULES, add a test.
+#   Changing the settings below changes what gets flagged.
 # ------------------------------------------------------------
 
-
 import re
+from datetime import date
+
+# ---------- Settings ----------
+TARGET_ZIPS = ["39157"]      # the ZIP codes in your market
+MIN_PRICE = 10_000           # anything cheaper is a typo, not a house
+MIN_SQFT_PER_BED = 150       # less space than this per bedroom is impossible
 
 # Different spellings of the same word, mapped to one short form.
 ABBREVIATIONS = {
@@ -59,3 +64,76 @@ def normalize_address(address):
         short_words.append(ABBREVIATIONS.get(word, word))
 
     return " ".join(short_words)
+
+
+# ---------- Quality rules ----------
+# Each rule looks at one Property.
+# It returns a reason (text) if something is wrong, or None if it's fine.
+
+def check_price(prop):
+    if prop.price < MIN_PRICE:
+        return f"price ${prop.price:,} is below ${MIN_PRICE:,}"
+    return None
+
+
+def check_land_with_bedrooms(prop):
+    if prop.property_type == "Vacant Land" and prop.beds is not None and prop.beds > 0:
+        return f"vacant land listed with {prop.beds} bedrooms"
+    return None
+
+
+def check_size_for_bedrooms(prop):
+    if prop.sqft is None or prop.beds is None:
+        return None  # unknown isn't wrong, so there's nothing to check
+    if prop.sqft < prop.beds * MIN_SQFT_PER_BED:
+        return f"{prop.sqft} sq ft is too small for {prop.beds} bedrooms"
+    return None
+
+
+def check_year_built(prop):
+    if prop.year_built is None:
+        return None
+    latest = date.today().year + 1  # homes under construction may list next year
+    if prop.year_built > latest or prop.year_built < 1800:
+        return f"year built {prop.year_built} is impossible"
+    return None
+
+
+def check_floor_plan(prop):
+    if prop.sale_type == "New Construction Plan":
+        return "builder floor plan, not a real house for sale"
+    return None
+
+
+def check_property_type(prop):
+    if prop.property_type is None or prop.property_type == "Unknown":
+        return "property type unknown"
+    return None
+
+
+def check_area(prop):
+    if prop.zip_code not in TARGET_ZIPS:
+        return f"ZIP {prop.zip_code} is outside your market"
+    return None
+
+
+# Every rule, in the order they run. A new rule must be added here.
+RULES = [
+    check_price,
+    check_land_with_bedrooms,
+    check_size_for_bedrooms,
+    check_year_built,
+    check_floor_plan,
+    check_property_type,
+    check_area,
+]
+
+
+def find_problems(prop):
+    """Run every rule on one Property. Returns a list of reasons; empty means clean."""
+    problems = []
+    for rule in RULES:
+        reason = rule(prop)
+        if reason is not None:
+            problems.append(reason)
+    return problems
