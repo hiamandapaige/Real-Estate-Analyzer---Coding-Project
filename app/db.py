@@ -20,7 +20,6 @@
 #   Column names must match the fields in models.py.
 # ------------------------------------------------------------
 
-
 import sqlite3
 from dataclasses import asdict
 from pathlib import Path
@@ -52,6 +51,8 @@ CREATE TABLE IF NOT EXISTS properties (
     status TEXT,
     property_type TEXT,
     sale_type TEXT,
+    address_key TEXT,
+    problems TEXT,
     UNIQUE (address, zip_code)
 );
 """
@@ -68,11 +69,11 @@ INSERT_PROPERTY = """
 INSERT OR IGNORE INTO properties (
     address, city, state, zip_code, price, source, date_seen,
     sqft, beds, year_built, lot_size, baths, latitude, longitude,
-    status, property_type, sale_type
+    status, property_type, sale_type, address_key, problems
 ) VALUES (
     :address, :city, :state, :zip_code, :price, :source, :date_seen,
     :sqft, :beds, :year_built, :lot_size, :baths, :latitude, :longitude,
-    :status, :property_type, :sale_type
+    :status, :property_type, :sale_type, :address_key, :problems
 );
 """
 
@@ -93,4 +94,3 @@ def save_properties(properties):
 if __name__ == "__main__":
     init_db()
     print(f"Database ready at {DB_PATH}")
-    

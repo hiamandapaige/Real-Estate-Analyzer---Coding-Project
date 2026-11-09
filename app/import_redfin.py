@@ -3,13 +3,15 @@
 #
 # WHAT IT DOES
 #   Reads every CSV in data/inbox, turns each row into a
-#   Property, saves new ones to the database, then moves the
+#   Property, runs the cleaning rules, saves new ones to the
+#   database, prints a data-quality report, then moves the
 #   file to data/raw.
 #   Run it:  python3 -m app.import_redfin
 #
 # USED BY
 #   You, whenever you download new listings from Redfin.
-#   Depends on models.py (Property) and db.py (save_properties).
+#   Depends on models.py (Property), clean.py (cleaning and
+#   the report), and db.py (save_properties).
 #
 # IF YOU EDIT IT
 #   Column names like "ZIP OR POSTAL CODE" must match Redfin's
@@ -18,12 +20,12 @@
 #   Never hand-edit a CSV to make it fit. Fix quirks here.
 # ------------------------------------------------------------
 
-
 from datetime import date
 from pathlib import Path
 
 import pandas as pd
 
+from app.clean import clean_properties, print_quality_report
 from app.db import save_properties
 from app.models import Property
 
@@ -51,11 +53,11 @@ def to_float(value):
 
 def row_to_property(row, seen_on):
     return Property(
-        address=to_text(row["ADDRESS"]),
-        city=to_text(row["CITY"]),
-        state=to_text(row["STATE OR PROVINCE"]),
-        zip_code=to_text(row["ZIP OR POSTAL CODE"]),
-        price=to_int(row["PRICE"]),
+        address=row["ADDRESS"],
+        city=row["CITY"],
+        state=row["STATE OR PROVINCE"],
+        zip_code=row["ZIP OR POSTAL CODE"],
+        price=int(row["PRICE"]),
         source="redfin",
         date_seen=seen_on,
         sqft=to_int(row["SQUARE FEET"]),
@@ -74,7 +76,6 @@ def row_to_property(row, seen_on):
 def load_redfin_csv(path):
     df = pd.read_csv(path, dtype={"ZIP OR POSTAL CODE": str})
     df = df.dropna(subset=["ADDRESS"])
-
     today = date.today()
     properties = []
     for _, row in df.iterrows():
@@ -83,21 +84,18 @@ def load_redfin_csv(path):
 
 
 def import_inbox():
+    RAW.mkdir(parents=True, exist_ok=True)
     files = sorted(INBOX.glob("*.csv"))
     if not files:
         print("No CSV files in data/inbox")
         return
-
     for path in files:
-        properties = load_redfin_csv(path)
-        added = save_properties(properties)
+        properties = load_redfin_csv(path)      # Extract + Transform
+        flagged = clean_properties(properties)  # Clean
+        added = save_properties(properties)     # Load
+        print_quality_report(path.name, properties, flagged, added)
         path.rename(RAW / path.name)
-        print(f"{path.name}: read {len(properties)}, saved {added} new")
 
 
 if __name__ == "__main__":
-    import_inbox() 
-
-    
-
-
+    import_inbox()

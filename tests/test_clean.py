@@ -26,6 +26,7 @@ from app.clean import (
     check_property_type,
     check_size_for_bedrooms,
     check_year_built,
+    clean_properties,
     find_problems,
     normalize_address,
 )
@@ -118,3 +119,16 @@ def test_outside_zip_is_flagged():
 def test_one_home_can_have_several_problems():
     messy = replace(GOOD_HOME, property_type="Vacant Land", beds=4, zip_code="39110")
     assert len(find_problems(messy)) == 2
+
+
+# ---------- clean_properties ----------
+
+def test_clean_properties_fills_in_the_new_fields():
+    good = replace(GOOD_HOME)
+    plan = replace(GOOD_HOME, address="9 Elm Street", sale_type="New Construction Plan")
+    flagged = clean_properties([good, plan])
+
+    assert good.address_key == "123 MAIN ST"
+    assert good.problems is None
+    assert plan.problems is not None
+    assert flagged == [plan]

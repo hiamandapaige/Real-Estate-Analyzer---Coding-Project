@@ -8,7 +8,8 @@
 # USED BY
 #   import_redfin.py fills out one Property per CSV row.
 #   db.py saves Properties. Field names must match column names.
-#
+#   clean.py fills in address_key and problems.
+
 # IF YOU EDIT IT
 #   Adding, renaming, or removing a field also means updating:
 #     - db.py: the CREATE TABLE columns and INSERT placeholders
@@ -44,4 +45,8 @@ class Property:
 
     property_type: str | None = None
     sale_type: str | None = None
-    
+
+
+        # Filled in by clean.py
+    address_key: str | None = None   # standardized address for matching
+    problems: str | None = None      # reasons it can't be trusted; None = clean

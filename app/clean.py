@@ -7,11 +7,14 @@
 #   find_problems() runs every quality rule on one Property and
 #   returns a list of reasons it can't be trusted (empty = clean).
 #
+#   clean_properties() fills in address_key and problems on
+#   every Property, and print_quality_report() summarizes it.
 # USED BY
 #   tests/test_clean.py checks every function here.
 #   import_redfin.py will use it (Part C). Later projects rely
 #   on the standardized address to match county records.
 #
+#   import_redfin.py runs clean_properties() on every import.
 # IF YOU EDIT IT
 #   Run  python3 -m pytest  after every change.
 #   New rule? Write the function, add it to RULES, add a test.
@@ -137,3 +140,35 @@ def find_problems(prop):
         if reason is not None:
             problems.append(reason)
     return problems
+
+
+
+
+# ---------- Cleaning a whole file ----------
+
+def clean_properties(properties):
+    """Fill in address_key and problems on each Property. Returns the flagged ones."""
+    flagged = []
+    for prop in properties:
+        prop.address_key = normalize_address(prop.address)
+        problems = find_problems(prop)
+        if problems:
+            prop.problems = "; ".join(problems)
+            flagged.append(prop)
+        else:
+            prop.problems = None
+    return flagged
+
+
+def print_quality_report(file_name, properties, flagged, added):
+    """Print what came in, what's clean, and what was flagged and why."""
+    clean_count = len(properties) - len(flagged)
+    print()
+    print(f"Data-quality report: {file_name}")
+    print(f"  Rows read:               {len(properties)}")
+    print(f"  Addresses standardized:  {len(properties)}")
+    print(f"  Clean:                   {clean_count}")
+    print(f"  Flagged:                 {len(flagged)}")
+    for prop in flagged:
+        print(f"    - {prop.address}: {prop.problems}")
+    print(f"  New rows saved:          {added}")
